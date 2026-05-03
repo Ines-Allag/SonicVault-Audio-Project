@@ -11,21 +11,18 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
-  // Controllers for each field
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+  TextEditingController();
 
-  // Date of birth — stored as DateTime not a text field
   DateTime? _selectedDate;
-
-  // Optional fields
   String? _selectedGender;
   bool _passwordVisible = false;
   bool _confirmPasswordVisible = false;
+  bool _dateError = false;
 
   final List<String> _genderOptions = ['Male', 'Female', 'Prefer not to say'];
 
@@ -39,28 +36,28 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  // ── DATE PICKER ────────────────────────────
   Future<void> _pickDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime(2000), // default to year 2000
+      initialDate: DateTime(2000),
       firstDate: DateTime(1900),
-      lastDate: DateTime.now(),    // can't pick a future date
+      lastDate: DateTime.now(),
       builder: (context, child) {
         return Theme(
           data: ThemeData.dark().copyWith(
             colorScheme: const ColorScheme.dark(
-              primary: Color(0xFF6C63FF),
+              primary: Color(0xFF1DB954),
+              surface: Color(0xFF1A1A1A),
             ),
           ),
           child: child!,
         );
       },
     );
-
     if (picked != null) {
       setState(() {
         _selectedDate = picked;
+        _dateError = false;
       });
     }
   }
@@ -70,33 +67,52 @@ class _RegisterPageState extends State<RegisterPage> {
     return Consumer<AuthViewModel>(
       builder: (context, viewModel, child) {
         return Scaffold(
-          backgroundColor: const Color(0xFF0A0A0A),
+          backgroundColor: const Color(0xFF0D0D0D),
           appBar: AppBar(
-            backgroundColor: const Color(0xFF0A0A0A),
+            backgroundColor: const Color(0xFF0D0D0D),
+            elevation: 0,
             iconTheme: const IconThemeData(color: Colors.white),
             title: const Text(
               'Create Account',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           body: SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              padding:
+              const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
 
+                    // ── HEADER ────────────────────────────
                     const Text(
-                      'Required fields *',
+                      'Tell us about yourself',
                       style: TextStyle(
-                        color: Colors.white54,
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Fields marked with * are required',
+                      style: TextStyle(
+                        color: Colors.white38,
                         fontSize: 12,
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 28),
+
+                    // ── SECTION LABEL ─────────────────────
+                    _sectionLabel('Personal Info'),
+                    const SizedBox(height: 14),
 
                     // ── FIRST NAME ────────────────────────
                     TextFormField(
@@ -115,7 +131,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       },
                     ),
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
 
                     // ── LAST NAME ─────────────────────────
                     TextFormField(
@@ -134,10 +150,9 @@ class _RegisterPageState extends State<RegisterPage> {
                       },
                     ),
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
 
                     // ── DATE OF BIRTH ─────────────────────
-                    // not a text field — opens a date picker
                     GestureDetector(
                       onTap: _pickDate,
                       child: Container(
@@ -148,16 +163,23 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         decoration: BoxDecoration(
                           color: const Color(0xFF1A1A1A),
-                          borderRadius: BorderRadius.circular(12),
-                          border: _selectedDate == null
-                              ? Border.all(color: Colors.transparent)
-                              : Border.all(color: const Color(0xFF6C63FF)),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: _dateError
+                                ? Colors.red.withOpacity(0.5)
+                                : _selectedDate != null
+                                ? const Color(0xFF1DB954)
+                                : Colors.transparent,
+                            width: 1.5,
+                          ),
                         ),
                         child: Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.calendar_today_outlined,
-                              color: Colors.white54,
+                              color: _dateError
+                                  ? Colors.redAccent
+                                  : Colors.white38,
                               size: 20,
                             ),
                             const SizedBox(width: 12),
@@ -167,20 +189,24 @@ class _RegisterPageState extends State<RegisterPage> {
                                   : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
                               style: TextStyle(
                                 color: _selectedDate == null
-                                    ? Colors.white54
+                                    ? Colors.white38
                                     : Colors.white,
                                 fontSize: 16,
                               ),
+                            ),
+                            const Spacer(),
+                            const Icon(
+                              Icons.arrow_drop_down,
+                              color: Colors.white38,
                             ),
                           ],
                         ),
                       ),
                     ),
 
-                    // show error if date not picked and form submitted
-                    if (_selectedDate == null && _formKey.currentState != null)
+                    if (_dateError)
                       const Padding(
-                        padding: EdgeInsets.only(top: 8, left: 12),
+                        padding: EdgeInsets.only(top: 6, left: 12),
                         child: Text(
                           'Date of birth is required',
                           style: TextStyle(
@@ -190,7 +216,32 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                       ),
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
+
+                    // ── GENDER (optional) ─────────────────
+                    DropdownButtonFormField<String>(
+                      value: _selectedGender,
+                      dropdownColor: const Color(0xFF1A1A1A),
+                      style: const TextStyle(color: Colors.white),
+                      decoration: _inputDecoration(
+                        label: 'Gender (optional)',
+                        icon: Icons.people_outline,
+                      ),
+                      items: _genderOptions.map((String gender) {
+                        return DropdownMenuItem(
+                          value: gender,
+                          child: Text(gender),
+                        );
+                      }).toList(),
+                      onChanged: (value) =>
+                          setState(() => _selectedGender = value),
+                    ),
+
+                    const SizedBox(height: 28),
+
+                    // ── SECTION LABEL ─────────────────────
+                    _sectionLabel('Account Info'),
+                    const SizedBox(height: 14),
 
                     // ── EMAIL ─────────────────────────────
                     TextFormField(
@@ -213,7 +264,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       },
                     ),
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
 
                     // ── PASSWORD ──────────────────────────
                     TextFormField(
@@ -229,13 +280,11 @@ class _RegisterPageState extends State<RegisterPage> {
                             _passwordVisible
                                 ? Icons.visibility_off
                                 : Icons.visibility,
-                            color: Colors.white54,
+                            color: Colors.white38,
+                            size: 20,
                           ),
-                          onPressed: () {
-                            setState(() {
-                              _passwordVisible = !_passwordVisible;
-                            });
-                          },
+                          onPressed: () => setState(
+                                  () => _passwordVisible = !_passwordVisible),
                         ),
                       ),
                       onChanged: (_) => viewModel.clearError(),
@@ -250,7 +299,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       },
                     ),
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
 
                     // ── CONFIRM PASSWORD ──────────────────
                     TextFormField(
@@ -266,13 +315,12 @@ class _RegisterPageState extends State<RegisterPage> {
                             _confirmPasswordVisible
                                 ? Icons.visibility_off
                                 : Icons.visibility,
-                            color: Colors.white54,
+                            color: Colors.white38,
+                            size: 20,
                           ),
-                          onPressed: () {
-                            setState(() {
-                              _confirmPasswordVisible = !_confirmPasswordVisible;
-                            });
-                          },
+                          onPressed: () => setState(() =>
+                          _confirmPasswordVisible =
+                          !_confirmPasswordVisible),
                         ),
                       ),
                       validator: (value) {
@@ -286,63 +334,38 @@ class _RegisterPageState extends State<RegisterPage> {
                       },
                     ),
 
-                    const SizedBox(height: 24),
-
-                    // ── GENDER (optional) ─────────────────
-                    const Text(
-                      'Optional',
-                      style: TextStyle(
-                        color: Colors.white54,
-                        fontSize: 12,
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    DropdownButtonFormField<String>(
-                      value: _selectedGender,
-                      dropdownColor: const Color(0xFF1A1A1A),
-                      style: const TextStyle(color: Colors.white),
-                      decoration: _inputDecoration(
-                        label: 'Gender',
-                        icon: Icons.people_outline,
-                      ),
-                      items: _genderOptions.map((String gender) {
-                        return DropdownMenuItem(
-                          value: gender,
-                          child: Text(gender),
-                        );
-                      }).toList(),
-                      onChanged: (String? value) {
-                        setState(() {
-                          _selectedGender = value;
-                        });
-                      },
-                    ),
-
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 28),
 
                     // ── ERROR MESSAGE ─────────────────────
-                    if (viewModel.errorMessage != null)
+                    if (viewModel.errorMessage != null) ...[
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
+                          color: Colors.red.withOpacity(0.08),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.red.shade800),
+                          border: Border.all(
+                              color: Colors.red.withOpacity(0.3)),
                         ),
-                        child: Text(
-                          viewModel.errorMessage!,
-                          style: const TextStyle(
-                            color: Colors.redAccent,
-                            fontSize: 13,
-                          ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.error_outline,
+                                color: Colors.redAccent, size: 18),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                viewModel.errorMessage!,
+                                style: const TextStyle(
+                                  color: Colors.redAccent,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-
-                    if (viewModel.errorMessage != null)
                       const SizedBox(height: 16),
+                    ],
 
                     // ── REGISTER BUTTON ───────────────────
                     SizedBox(
@@ -352,22 +375,24 @@ class _RegisterPageState extends State<RegisterPage> {
                         onPressed: viewModel.isLoading
                             ? null
                             : () async {
-                          // validate date separately
                           if (_selectedDate == null) {
-                            setState(() {});
+                            setState(() => _dateError = true);
                             return;
                           }
                           if (_formKey.currentState!.validate()) {
-                            final bool success = await viewModel.register(
+                            final bool success =
+                            await viewModel.register(
                               email: _emailController.text.trim(),
-                              password: _passwordController.text.trim(),
-                              firstName: _firstNameController.text.trim(),
-                              lastName: _lastNameController.text.trim(),
+                              password:
+                              _passwordController.text.trim(),
+                              firstName:
+                              _firstNameController.text.trim(),
+                              lastName:
+                              _lastNameController.text.trim(),
                               birthDate: _selectedDate!,
                               gender: _selectedGender,
                             );
                             if (success && mounted) {
-                              // go to home, clear all previous routes
                               Navigator.pushNamedAndRemoveUntil(
                                 context,
                                 '/home',
@@ -377,28 +402,34 @@ class _RegisterPageState extends State<RegisterPage> {
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF6C63FF),
+                          backgroundColor: const Color(0xFF1DB954),
                           foregroundColor: Colors.white,
+                          elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
                         child: viewModel.isLoading
-                            ? const CircularProgressIndicator(
-                          color: Colors.white,
+                            ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
                         )
                             : const Text(
                           'Create Account',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ),
                     ),
 
                     const SizedBox(height: 32),
-
                   ],
                 ),
               ),
@@ -409,23 +440,57 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
+  Widget _sectionLabel(String label) {
+    return Row(
+      children: [
+        Container(
+          width: 3,
+          height: 16,
+          decoration: BoxDecoration(
+            color: const Color(0xFF1DB954),
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ],
+    );
+  }
+
   InputDecoration _inputDecoration({
     required String label,
     required IconData icon,
   }) {
     return InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(color: Colors.white54),
-      prefixIcon: Icon(icon, color: Colors.white54),
+      labelStyle: const TextStyle(color: Colors.white38),
+      prefixIcon: Icon(icon, color: Colors.white38, size: 20),
       filled: true,
       fillColor: const Color(0xFF1A1A1A),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide.none,
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF6C63FF)),
+        borderRadius: BorderRadius.circular(14),
+        borderSide:
+        const BorderSide(color: Color(0xFF1DB954), width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: Colors.red.withOpacity(0.5)),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: Colors.red.withOpacity(0.5)),
       ),
       errorStyle: const TextStyle(color: Colors.redAccent),
     );

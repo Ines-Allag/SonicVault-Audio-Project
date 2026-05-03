@@ -2,61 +2,71 @@ import 'package:flutter/material.dart';
 import 'package:sonic_vault/core/services/biometric_service.dart';
 import 'package:sonic_vault/core/services/sound_service.dart';
 
-// ChangeNotifier means this class can notify the view
-// whenever something changes (state changes)
 class BiometricViewModel extends ChangeNotifier {
 
   // ── STATE ──────────────────────────────────────
-  // these variables describe what the UI should show
-  // at any given moment
+  bool _hasStarted = false;
+  bool _isLoading = false;
+  bool _isAuthenticated = false;
+  bool _showSuccess = false;
+  String? _errorMessage;
 
-  bool _isLoading = false;      // are we currently scanning?
-  bool _isAuthenticated = false; // did the scan succeed?
-  String? _errorMessage;         // is there an error to show?
 
-  // Getters — the view reads these, never the private variables directly
+  // Getters
+  bool get hasStarted => _hasStarted;
   bool get isLoading => _isLoading;
   bool get isAuthenticated => _isAuthenticated;
+  bool get showSuccess => _showSuccess;
   String? get errorMessage => _errorMessage;
 
-  // ── SERVICE ─────────────────────────────────────
-  // the viewmodel USES the service, it doesn't replace it
+  // ── SERVICES ────────────────────────────────────
   final BiometricService _biometricService = BiometricService();
   final SoundService _soundService = SoundService();
 
-  // ── MAIN METHOD ─────────────────────────────────
-  // this is called when the app opens or when user taps retry
+  // ── CALLED WHEN USER TAPS THE BUTTON ────────────
+  // this is the entry point from the view
+  Future<void> startAuthentication() async {
+    _hasStarted = true;
+    notifyListeners();
+    await authenticate();
+  }
+
+  // ── CALLED ON RETRY TOO ──────────────────────────
   Future<void> authenticate() async {
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners(); // tell the view "hey update yourself"
+    notifyListeners();
 
     // Step 1 — is a fingerprint registered on this phone?
     final bool available = await _biometricService.isBiometricAvailable();
 
     if (!available) {
-      // No fingerprint registered → send user to settings
-      await _biometricService.openBiometricSettings();
+      _biometricService.openBiometricSettings();
       _isLoading = false;
       notifyListeners();
-      return; // stop here, wait for user to come back
+      return;
     }
 
-    // Step 2 — fingerprint exists → show the scan prompt
+    // Step 2 — show the scan prompt
     final bool result = await _biometricService.authenticate();
 
     if (result) {
-      // SUCCESS → PLAY SOUND HIHI , mark as authenticated, view will navigate forward
+      _showSuccess = true;
+      notifyListeners();
       await _soundService.playSuccessSound();
+      // SET BOTH at the same time — only ONE rebuild
+      _showSuccess = false;
       _isAuthenticated = true;
       _errorMessage = null;
-    } else {
-      // FAILED → show retry message, do NOT close the app
+      notifyListeners(); // single rebuild → goes straight to auth
+    }
+    else {
+      // FAILED
       _isAuthenticated = false;
       _errorMessage = 'Fingerprint not recognized. Please try again.';
     }
 
     _isLoading = false;
-    notifyListeners(); // tell the view to rebuild with new state
+    notifyListeners();
   }
 }

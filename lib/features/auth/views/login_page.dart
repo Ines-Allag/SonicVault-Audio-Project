@@ -12,19 +12,13 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // Controllers read what the user typed in each field
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
-  // Controls whether password is visible or hidden
   bool _passwordVisible = false;
-
-  // Form key — used to validate fields before submitting
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
-    // Always dispose controllers to free memory
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -35,25 +29,39 @@ class _LoginPageState extends State<LoginPage> {
     return Consumer<AuthViewModel>(
       builder: (context, viewModel, child) {
         return Scaffold(
-          backgroundColor: const Color(0xFF0A0A0A),
+          backgroundColor: const Color(0xFF0D0D0D),
           body: SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
+                padding: const EdgeInsets.symmetric(horizontal: 28),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
 
+                      const SizedBox(height: 40),
+
                       // ── LOGO ──────────────────────────────
-                      const Icon(
-                        Icons.music_note_rounded,
-                        size: 80,
-                        color: Color(0xFF6C63FF),
+                      Container(
+                        width: 90,
+                        height: 90,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0xFF1DB954).withOpacity(0.1),
+                          border: Border.all(
+                            color: const Color(0xFF1DB954).withOpacity(0.3),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.music_note_rounded,
+                          size: 45,
+                          color: Color(0xFF1DB954),
+                        ),
                       ),
 
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 20),
 
                       const Text(
                         'Sonic Vault',
@@ -71,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
                         'Sign in to continue',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.white54,
+                          color: Colors.white38,
                         ),
                       ),
 
@@ -114,13 +122,10 @@ class _LoginPageState extends State<LoginPage> {
                               _passwordVisible
                                   ? Icons.visibility_off
                                   : Icons.visibility,
-                              color: Colors.white54,
+                              color: Colors.white38,
                             ),
-                            onPressed: () {
-                              setState(() {
-                                _passwordVisible = !_passwordVisible;
-                              });
-                            },
+                            onPressed: () => setState(
+                                    () => _passwordVisible = !_passwordVisible),
                           ),
                         ),
                         onChanged: (_) => viewModel.clearError(),
@@ -132,23 +137,24 @@ class _LoginPageState extends State<LoginPage> {
                         },
                       ),
 
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
 
                       // ── FORGOT PASSWORD ───────────────────
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const ResetPasswordPage(),
-                              ),
-                            );
-                          },
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ResetPasswordPage(),
+                            ),
+                          ),
                           child: const Text(
                             'Forgot password?',
-                            style: TextStyle(color: Color(0xFF6C63FF)),
+                            style: TextStyle(
+                              color: Color(0xFF1DB954),
+                              fontSize: 13,
+                            ),
                           ),
                         ),
                       ),
@@ -156,26 +162,35 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(height: 8),
 
                       // ── ERROR MESSAGE ─────────────────────
-                      if (viewModel.errorMessage != null)
+                      if (viewModel.errorMessage != null) ...[
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.1),
+                            color: Colors.red.withOpacity(0.08),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.red.shade800),
+                            border: Border.all(
+                                color: Colors.red.withOpacity(0.3)),
                           ),
-                          child: Text(
-                            viewModel.errorMessage!,
-                            style: const TextStyle(
-                              color: Colors.redAccent,
-                              fontSize: 13,
-                            ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.error_outline,
+                                  color: Colors.redAccent, size: 18),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  viewModel.errorMessage!,
+                                  style: const TextStyle(
+                                    color: Colors.redAccent,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-
-                      if (viewModel.errorMessage != null)
                         const SizedBox(height: 16),
+                      ],
 
                       // ── LOGIN BUTTON ──────────────────────
                       SizedBox(
@@ -183,7 +198,7 @@ class _LoginPageState extends State<LoginPage> {
                         height: 56,
                         child: ElevatedButton(
                           onPressed: viewModel.isLoading
-                              ? null // disable button while loading
+                              ? null
                               : () async {
                             if (_formKey.currentState!.validate()) {
                               final bool success = await viewModel.login(
@@ -192,33 +207,70 @@ class _LoginPageState extends State<LoginPage> {
                               );
                               if (success && mounted) {
                                 Navigator.pushReplacementNamed(
-                                  context, '/home',
-                                );
+                                    context, '/home');
                               }
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF6C63FF),
+                            backgroundColor: const Color(0xFF1DB954),
                             foregroundColor: Colors.white,
+                            elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
                           ),
                           child: viewModel.isLoading
-                              ? const CircularProgressIndicator(
-                            color: Colors.white,
+                              ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2.5,
+                            ),
                           )
                               : const Text(
                             'Login',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ),
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 28),
+
+                      // ── DIVIDER ───────────────────────────
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Divider(
+                              color: Colors.white.withOpacity(0.1),
+                              thickness: 1,
+                            ),
+                          ),
+                          Padding(
+                            padding:
+                            const EdgeInsets.symmetric(horizontal: 16),
+                            child: Text(
+                              'or',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.3),
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Divider(
+                              color: Colors.white.withOpacity(0.1),
+                              thickness: 1,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 28),
 
                       // ── REGISTER LINK ─────────────────────
                       Row(
@@ -226,28 +278,31 @@ class _LoginPageState extends State<LoginPage> {
                         children: [
                           const Text(
                             "Don't have an account? ",
-                            style: TextStyle(color: Colors.white54),
+                            style: TextStyle(
+                              color: Colors.white38,
+                              fontSize: 14,
+                            ),
                           ),
                           GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const RegisterPage(),
-                                ),
-                              );
-                            },
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const RegisterPage(),
+                              ),
+                            ),
                             child: const Text(
                               'Register',
                               style: TextStyle(
-                                color: Color(0xFF6C63FF),
+                                color: Color(0xFF1DB954),
                                 fontWeight: FontWeight.bold,
+                                fontSize: 14,
                               ),
                             ),
                           ),
                         ],
                       ),
 
+                      const SizedBox(height: 40),
                     ],
                   ),
                 ),
@@ -259,25 +314,32 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // ── INPUT DECORATION HELPER ───────────────
-  // reusable style for all text fields
   InputDecoration _inputDecoration({
     required String label,
     required IconData icon,
   }) {
     return InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(color: Colors.white54),
-      prefixIcon: Icon(icon, color: Colors.white54),
+      labelStyle: const TextStyle(color: Colors.white38),
+      prefixIcon: Icon(icon, color: Colors.white38, size: 20),
       filled: true,
       fillColor: const Color(0xFF1A1A1A),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide.none,
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF6C63FF)),
+        borderRadius: BorderRadius.circular(14),
+        borderSide:
+        const BorderSide(color: Color(0xFF1DB954), width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: Colors.red.withOpacity(0.5)),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: Colors.red.withOpacity(0.5)),
       ),
       errorStyle: const TextStyle(color: Colors.redAccent),
     );

@@ -12,8 +12,6 @@ class ResetPasswordPage extends StatefulWidget {
 class _ResetPasswordPageState extends State<ResetPasswordPage> {
   final TextEditingController _emailController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
-  // tracks if email was sent successfully
   bool _emailSent = false;
 
   @override
@@ -27,22 +25,26 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     return Consumer<AuthViewModel>(
       builder: (context, viewModel, child) {
         return Scaffold(
-          backgroundColor: const Color(0xFF0A0A0A),
+          backgroundColor: const Color(0xFF0D0D0D),
           appBar: AppBar(
-            backgroundColor: const Color(0xFF0A0A0A),
+            backgroundColor: const Color(0xFF0D0D0D),
+            elevation: 0,
             iconTheme: const IconThemeData(color: Colors.white),
             title: const Text(
               'Reset Password',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           body: SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
+                padding: const EdgeInsets.symmetric(horizontal: 28),
                 child: _emailSent
-                    ? _buildSuccessState() // show success after email sent
-                    : _buildFormState(viewModel), // show form by default
+                    ? _buildSuccessState()
+                    : _buildFormState(viewModel),
               ),
             ),
           ),
@@ -51,8 +53,6 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     );
   }
 
-  // ── FORM STATE ─────────────────────────────
-  // what user sees before sending the email
   Widget _buildFormState(AuthViewModel viewModel) {
     return Form(
       key: _formKey,
@@ -60,13 +60,26 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
 
-          const Icon(
-            Icons.lock_reset_rounded,
-            size: 80,
-            color: Color(0xFF6C63FF),
+          // ── ICON ─────────────────────────────
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF1DB954).withOpacity(0.1),
+              border: Border.all(
+                color: const Color(0xFF1DB954).withOpacity(0.3),
+                width: 1.5,
+              ),
+            ),
+            child: const Icon(
+              Icons.lock_reset_rounded,
+              size: 50,
+              color: Color(0xFF1DB954),
+            ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
 
           const Text(
             'Forgot your password?',
@@ -77,13 +90,14 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
             ),
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
           const Text(
-            'Enter your email and we will send you a link to reset your password.',
+            'Enter your email and we will send\nyou a link to reset your password.',
             style: TextStyle(
               fontSize: 14,
-              color: Colors.white54,
+              color: Colors.white38,
+              height: 1.5,
             ),
             textAlign: TextAlign.center,
           ),
@@ -97,22 +111,27 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
             style: const TextStyle(color: Colors.white),
             decoration: InputDecoration(
               labelText: 'Email',
-              labelStyle: const TextStyle(color: Colors.white54),
+              labelStyle: const TextStyle(color: Colors.white38),
               prefixIcon: const Icon(
                 Icons.email_outlined,
-                color: Colors.white54,
+                color: Colors.white38,
+                size: 20,
               ),
               filled: true,
               fillColor: const Color(0xFF1A1A1A),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(14),
                 borderSide: BorderSide.none,
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(14),
                 borderSide: const BorderSide(
-                  color: Color(0xFF6C63FF),
-                ),
+                    color: Color(0xFF1DB954), width: 1.5),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide:
+                BorderSide(color: Colors.red.withOpacity(0.5)),
               ),
               errorStyle: const TextStyle(color: Colors.redAccent),
             ),
@@ -131,26 +150,35 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
           const SizedBox(height: 16),
 
           // ── ERROR MESSAGE ───────────────────
-          if (viewModel.errorMessage != null)
+          if (viewModel.errorMessage != null) ...[
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
+                color: Colors.red.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.red.shade800),
+                border:
+                Border.all(color: Colors.red.withOpacity(0.3)),
               ),
-              child: Text(
-                viewModel.errorMessage!,
-                style: const TextStyle(
-                  color: Colors.redAccent,
-                  fontSize: 13,
-                ),
+              child: Row(
+                children: [
+                  const Icon(Icons.error_outline,
+                      color: Colors.redAccent, size: 18),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      viewModel.errorMessage!,
+                      style: const TextStyle(
+                        color: Colors.redAccent,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-
-          if (viewModel.errorMessage != null)
             const SizedBox(height: 16),
+          ],
 
           // ── SEND BUTTON ─────────────────────
           SizedBox(
@@ -161,54 +189,72 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                   ? null
                   : () async {
                 if (_formKey.currentState!.validate()) {
-                  final bool success = await viewModel.resetPassword(
+                  final bool success =
+                  await viewModel.resetPassword(
                     _emailController.text.trim(),
                   );
                   if (success && mounted) {
-                    setState(() {
-                      _emailSent = true;
-                    });
+                    setState(() => _emailSent = true);
                   }
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6C63FF),
+                backgroundColor: const Color(0xFF1DB954),
                 foregroundColor: Colors.white,
+                elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
               child: viewModel.isLoading
-                  ? const CircularProgressIndicator(color: Colors.white)
+                  ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2.5,
+                ),
+              )
                   : const Text(
                 'Send Reset Link',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
                 ),
               ),
             ),
           ),
-
         ],
       ),
     );
   }
 
-  // ── SUCCESS STATE ───────────────────────────
-  // what user sees AFTER email is sent
   Widget _buildSuccessState() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
 
-        const Icon(
-          Icons.mark_email_read_outlined,
-          size: 100,
-          color: Color(0xFF6C63FF),
+        // ── SUCCESS ICON ──────────────────────
+        Container(
+          width: 120,
+          height: 120,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: const Color(0xFF1DB954).withOpacity(0.1),
+            border: Border.all(
+              color: const Color(0xFF1DB954),
+              width: 2,
+            ),
+          ),
+          child: const Icon(
+            Icons.mark_email_read_outlined,
+            size: 55,
+            color: Color(0xFF1DB954),
+          ),
         ),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: 32),
 
         const Text(
           'Email Sent!',
@@ -225,25 +271,23 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
           'We sent a reset link to\n${_emailController.text.trim()}',
           style: const TextStyle(
             fontSize: 14,
-            color: Colors.white54,
+            color: Colors.white38,
+            height: 1.6,
           ),
           textAlign: TextAlign.center,
         ),
 
-        const SizedBox(height: 40),
+        const SizedBox(height: 48),
 
-        // ── BACK TO LOGIN ───────────────────
         SizedBox(
           width: double.infinity,
           height: 56,
           child: ElevatedButton(
-            onPressed: () {
-              // pop back to login page
-              Navigator.pop(context);
-            },
+            onPressed: () => Navigator.pop(context),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6C63FF),
+              backgroundColor: const Color(0xFF1DB954),
               foregroundColor: Colors.white,
+              elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -253,11 +297,11 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
               ),
             ),
           ),
         ),
-
       ],
     );
   }

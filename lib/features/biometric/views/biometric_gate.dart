@@ -14,138 +14,251 @@ class _BiometricGateState extends State<BiometricGate> {
   @override
   void initState() {
     super.initState();
-    // As soon as this screen opens, automatically trigger the scan
-    // We use Future.microtask so the widget is fully built before we call anything
-    Future.microtask(() =>
-        context.read<BiometricViewModel>().authenticate()
+  }
+
+  Widget _buildSuccessScreen() {
+    return Scaffold(
+      backgroundColor: const Color(0xFF0D0D0D),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF1DB954).withOpacity(0.15),
+                border: Border.all(
+                  color: const Color(0xFF1DB954),
+                  width: 2,
+                ),
+              ),
+              child: const Icon(
+                Icons.check_rounded,
+                color: Color(0xFF1DB954),
+                size: 60,
+              ),
+            ),
+            const SizedBox(height: 32),
+            const Text(
+              'Identity Verified!',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Welcome to Sonic Vault',
+              style: TextStyle(
+                color: Color(0xFF1DB954),
+                fontSize: 15,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Consumer listens to the viewmodel — anytime notifyListeners()
-    // is called, this rebuilds automatically
     return Consumer<BiometricViewModel>(
       builder: (context, viewModel, child) {
 
-        // If authentication succeeded → navigate to next screen
-        if (viewModel.isAuthenticated) {
-          Future.microtask(() {
-            Navigator.pushReplacementNamed(context, '/auth');
-          });
+        // ── SUCCESS SOUND PLAYING ──────────────────
+        if (viewModel.showSuccess) {
+          return _buildSuccessScreen();
         }
 
+        // ── AUTHENTICATED → keep success screen + navigate
+        if (viewModel.isAuthenticated) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              Navigator.pushReplacementNamed(context, '/auth');
+            }
+          });
+          return _buildSuccessScreen(); // ← no flash, stays green
+        }
+
+        // ── MAIN BIOMETRIC SCREEN ──────────────────
         return Scaffold(
-          backgroundColor: const Color(0xFF0A0A0A), // dark background
+          backgroundColor: const Color(0xFF0D0D0D),
+          // resizeToAvoidBottomInset fixes the page shifting left
+          // when system dialogs appear
+          resizeToAvoidBottomInset: false,
           body: SafeArea(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+            // maintainBottomViewPadding prevents layout shifts
+            maintainBottomViewPadding: true,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                children: [
 
-                    // ── APP LOGO / ICON ──────────────────────
-                    const Icon(
-                      Icons.fingerprint,
-                      size: 100,
-                      color: Color(0xFF6C63FF), // purple accent
-                    ),
+                  const Spacer(flex: 2),
 
-                    const SizedBox(height: 32),
-
-                    // ── APP NAME ─────────────────────────────
-                    const Text(
-                      'Sonic Vault',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        letterSpacing: 1.5,
+                  // ── TOP LOGO AREA ────────────────
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0xFF1DB954).withOpacity(0.1),
+                      border: Border.all(
+                        color: const Color(0xFF1DB954).withOpacity(0.3),
+                        width: 1.5,
                       ),
                     ),
-
-                    const SizedBox(height: 12),
-
-                    // ── SUBTITLE ──────────────────────────────
-                    const Text(
-                      'Verify your identity to continue',
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.white54,
-                      ),
-                      textAlign: TextAlign.center,
+                    child: const Icon(
+                      Icons.music_note_rounded,
+                      size: 50,
+                      color: Color(0xFF1DB954),
                     ),
+                  ),
 
-                    const SizedBox(height: 60),
+                  const SizedBox(height: 24),
 
-                    // ── LOADING or ERROR STATE ────────────────
-                    if (viewModel.isLoading)
-                    // Show spinner while scanning
-                      const CircularProgressIndicator(
-                        color: Color(0xFF6C63FF),
-                      )
-                    else ...[
+                  // ── APP NAME ─────────────────────
+                  const Text(
+                    'Sonic Vault',
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
 
-                      // Show error message if scan failed
-                      if (viewModel.errorMessage != null) ...[
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.red.shade800),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.error_outline,
-                                  color: Colors.redAccent),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  viewModel.errorMessage!,
-                                  style: const TextStyle(
-                                    color: Colors.redAccent,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
-                            ],
+                  const SizedBox(height: 8),
+
+                  const Text(
+                    'Your secure audio player',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white38,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+
+                  const Spacer(flex: 2),
+
+                  // ── FINGERPRINT ICON ─────────────
+                  Container(
+                    width: 140,
+                    height: 140,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: viewModel.errorMessage != null
+                          ? Colors.red.withOpacity(0.08)
+                          : const Color(0xFF1DB954).withOpacity(0.08),
+                      border: Border.all(
+                        color: viewModel.errorMessage != null
+                            ? Colors.red.withOpacity(0.3)
+                            : const Color(0xFF1DB954).withOpacity(0.3),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.fingerprint_rounded,
+                      size: 80,
+                      color: viewModel.errorMessage != null
+                          ? Colors.redAccent
+                          : const Color(0xFF1DB954),
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // ── STATUS TEXT ──────────────────
+                  Text(
+                    viewModel.isLoading
+                        ? 'Scanning...'
+                        : viewModel.errorMessage != null
+                        ? 'Not recognized'
+                        : 'Scan your fingerprint',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: viewModel.errorMessage != null
+                          ? Colors.redAccent
+                          : Colors.white,
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  Text(
+                    viewModel.isLoading
+                        ? 'Place your finger on the sensor'
+                        : viewModel.errorMessage != null
+                        ? 'Please try again'
+                        : 'Tap the button below to verify your identity',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Colors.white38,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+
+                  const Spacer(flex: 2),
+
+                  // ── LOADING OR BUTTON ────────────
+                  if (viewModel.isLoading)
+                    const CircularProgressIndicator(
+                      color: Color(0xFF1DB954),
+                      strokeWidth: 2.5,
+                    )
+                  else
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton.icon(
+                        onPressed: () => viewModel.errorMessage != null
+                            ? context.read<BiometricViewModel>().authenticate()
+                            : context.read<BiometricViewModel>().startAuthentication(),
+                        icon: Icon(
+                          viewModel.errorMessage != null
+                              ? Icons.refresh_rounded
+                              : Icons.fingerprint_rounded,
+                        ),
+                        label: Text(
+                          viewModel.errorMessage != null
+                              ? 'Try Again'
+                              : 'Scan Fingerprint',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
                           ),
                         ),
-                        const SizedBox(height: 24),
-                      ],
-
-                      // ── RETRY BUTTON ────────────────────────
-                      SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: ElevatedButton.icon(
-                          onPressed: () =>
-                              context.read<BiometricViewModel>().authenticate(),
-                          icon: const Icon(Icons.fingerprint),
-                          label: Text(
-                            viewModel.errorMessage != null
-                                ? 'Try Again'    // after a failure
-                                : 'Scan Fingerprint', // first time
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1DB954),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF6C63FF),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            textStyle: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          elevation: 0,
                         ),
                       ),
-                    ],
+                    ),
 
-                  ],
-                ),
+                  const SizedBox(height: 16),
+
+                  // ── BOTTOM HINT ──────────────────
+                  const Text(
+                    'Secured by biometric authentication',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white24,
+                    ),
+                  ),
+
+                  const Spacer(),
+
+                ],
               ),
             ),
           ),
