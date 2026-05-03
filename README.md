@@ -4,16 +4,6 @@
 > Stream, protect, and personalize your listening experience.
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-54C5F8?style=flat-square&logo=flutter)
-
-message.txt
-3 KB
-﻿
-# 🔐 SonicVault
-
-> A secure biometric-gated audio player built with Flutter & Firebase.
-> Stream, protect, and personalize your listening experience.
-
-![Flutter](https://img.shields.io/badge/Flutter-3.x-54C5F8?style=flat-square&logo=flutter)
 ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=flat-square&logo=firebase&logoColor=black)
 ![Dart](https://img.shields.io/badge/Dart-0175C2?style=flat-square&logo=dart)
 
