@@ -1,0 +1,46 @@
+name: sonic_vault
+description: A secure audio player app.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Firebase
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  cloud_firestore: ^5.4.4
+
+  # Biometric
+  local_auth: ^2.3.0
+
+  # Audio
+  just_audio: ^0.9.40
+  audio_service: ^0.18.15
+
+  # State management
+  provider: ^6.1.2
+
+  # Local storage
+  shared_preferences: ^2.3.2
+
+  # App settings (redirect to fingerprint settings)
+  app_settings: ^5.1.1
+
+  # UI
+  cupertino_icons: ^1.0.8
+  fl_chart: ^0.69.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/audio/

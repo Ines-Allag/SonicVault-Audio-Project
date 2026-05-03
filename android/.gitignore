@@ -1,0 +1,35 @@
+gradle-wrapper.jar
+/.gradle
+/captures/
+/gradlew
+/gradlew.bat
+/local.properties
+GeneratedPluginRegistrant.java
+.cxx/
+
+
+key.propertie
+
+**/*.keystore
+**/*.jks
+
+# Firebase sensitive files
+google-services.json
+GoogleService-Info.plist
+
+# Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+*.g.dart
+
+# Android
+*.keystore
+*.jks
+android/.gradle
+android/local.properties
+
+# IDE
+.idea/
+*.iml
