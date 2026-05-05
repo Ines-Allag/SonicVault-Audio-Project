@@ -1,26 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
-import 'package:sonic_vault/features/biometric/viewmodels/biometric_viewmodel.dart';
-import 'package:sonic_vault/app.dart';
 
+import 'package:sonic_vault/app.dart';
 import 'features/auth/viewmodels/auth_viewmodel.dart';
+import 'features/biometric/viewmodels/biometric_viewmodel.dart';
+import 'features/settings/viewmodels/settings_viewmodel.dart';
+import 'features/stats/viewmodels/stats_viewmodel.dart';
 
 void main() async {
-  // Makes sure Flutter is fully ready before we do anything
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase — must happen before runApp
-  await Firebase.initializeApp();
+  try {
+    await Firebase.initializeApp(
+      options: FirebaseOptions(
+        apiKey: 'AIzaSyAR36rWi8raFz3Nw3d8aQ9L7K0wBf_a47U',
+        appId: '1:358759832482:android:97ed8ca8eaa429973270fb',
+        messagingSenderId: '358759832482',
+        projectId: 'audio-project-ce962',
+        databaseURL: 'https://audio-project-ce962-default-rtdb.europe-west1.firebasedatabase.app',  // Force it here
+        storageBucket: 'audio-project-ce962.firebasestorage.app',
+      ),
+    );
+    print("✅ Firebase initialized with EUROPE URL");
+  } catch (e) {
+    print("Firebase init error: $e");
+  }
 
   runApp(
-    // MultiProvider is how we make viewmodels available
-    // to the entire app — think of it as a backpack
-    // that every screen can reach into
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => BiometricViewModel()),
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
+        ChangeNotifierProvider(create: (_) => StatsViewModel()),
+        ChangeNotifierProvider(create: (_) => SettingsViewModel()),
       ],
       child: const SonicVaultApp(),
     ),

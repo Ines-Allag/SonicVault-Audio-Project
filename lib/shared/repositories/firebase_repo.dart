@@ -1,22 +1,17 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:sonic_vault/shared/models/user_model.dart';
 
 class FirebaseRepository {
-  // The two Firebase services we use
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseDatabase _db = FirebaseDatabase.instance;
 
-  // ─────────────────────────────────────────
-  // CHECK: is the user already logged in?
-  // ─────────────────────────────────────────
   User? get currentUser => _auth.currentUser;
-
   bool get isLoggedIn => _auth.currentUser != null;
 
-  // ─────────────────────────────────────────
-  // REGISTER: create account + save to Firestore
-  // ─────────────────────────────────────────
+  DatabaseReference get _usersRef => _db.ref('users');
+
+  // ====================== AUTH ======================
   Future<UserModel> register({
     required String email,
     required String password,
@@ -25,14 +20,11 @@ class FirebaseRepository {
     required DateTime birthDate,
     String? gender,
   }) async {
-    // Step 1 — create the account in Firebase Auth
-    final UserCredential credential = await _auth
-        .createUserWithEmailAndPassword(
+    final UserCredential credential = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
 
-    // Step 2 — build our UserModel
     final UserModel user = UserModel(
       uid: credential.user!.uid,
       firstName: firstName,
@@ -42,67 +34,53 @@ class FirebaseRepository {
       gender: gender,
     );
 
-    // Step 3 — save the extra info to Firestore
-    // Firebase Auth only stores email + password
-    // Everything else (name, birthdate) goes in Firestore
-    await _firestore
-        .collection('users')
-        .doc(credential.user!.uid)
-        .set(user.toMap());
+    // Save user data in Realtime Database
+    await _usersRef.child(credential.user!.uid).set(user.toMap());
 
     return user;
   }
 
-  // ─────────────────────────────────────────
-  // LOGIN: sign in with email + password
-  // ─────────────────────────────────────────
+  // ====================== LOGIN ======================
   Future<UserModel> login({
     required String email,
     required String password,
   }) async {
-    // Step 1 — sign in with Firebase Auth
-    final UserCredential credential = await _auth
-        .signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-
-    // Step 2 — fetch the user's extra info from Firestore
-    final DocumentSnapshot doc = await _firestore
-        .collection('users')
-        .doc(credential.user!.uid)
-        .get();
-
-    return UserModel.fromMap(doc.data() as Map<String, dynamic>);
+    await _auth.signInWithEmailAndPassword(email: email, password: password);
+    return await getCurrentUserData() ??
+        UserModel(uid: '', firstName: '', lastName: '', birthDate: DateTime.now(), email: email);
   }
 
-  // ─────────────────────────────────────────
-  // RESET PASSWORD: send reset email
-  // ─────────────────────────────────────────
+  // ====================== RESET PASSWORD ======================
   Future<void> resetPassword(String email) async {
     await _auth.sendPasswordResetEmail(email: email);
   }
 
-  // ─────────────────────────────────────────
-  // LOGOUT
-  // ─────────────────────────────────────────
+  // ====================== LOGOUT ======================
   Future<void> logout() async {
     await _auth.signOut();
   }
 
-  // ─────────────────────────────────────────
-  // GET current user data from Firestore
-  // ─────────────────────────────────────────
+  // ====================== GET USER DATA ======================
   Future<UserModel?> getCurrentUserData() async {
     if (!isLoggedIn) return null;
 
-    final DocumentSnapshot doc = await _firestore
-        .collection('users')
-        .doc(currentUser!.uid)
-        .get();
+    final snapshot = await _usersRef.child(currentUser!.uid).get();
 
-    if (!doc.exists) return null;
+    if (!snapshot.exists || snapshot.value == null) return null;
 
-    return UserModel.fromMap(doc.data() as Map<String, dynamic>);
+    // Safe cast
+    final data = snapshot.value as Map<dynamic, dynamic>;
+    return UserModel.fromMap(data);
+  }
+
+  // ====================== UPDATE USER INFO ======================
+  Future<void> updateUserInfo({
+    required String firstName,
+    required String lastName,
+  }) async {
+    await _usersRef.child(currentUser!.uid).update({
+      'firstName': firstName,
+      'lastName': lastName,
+    });
   }
 }

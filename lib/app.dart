@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sonic_vault/features/biometric/views/biometric_gate.dart';
 import 'package:sonic_vault/features/auth/views/login_page.dart';
+import 'package:sonic_vault/features/stats/views/stats_page.dart';
+import 'package:sonic_vault/features/settings/views/settings_page.dart';
 
 class SonicVaultApp extends StatelessWidget {
   const SonicVaultApp({super.key});
@@ -31,7 +33,8 @@ class SonicVaultApp extends StatelessWidget {
       // We'll add these as we build each screen
       routes: {
         '/auth': (context) => const LoginPage(),
-        '/home': (context) => const Placeholder(),
+        '/home': (context) => const StatsPage(),
+        '/settings': (context) => const SettingsPage(),
       },
     );
   }

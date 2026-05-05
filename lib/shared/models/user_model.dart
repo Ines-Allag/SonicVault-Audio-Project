@@ -27,18 +27,19 @@ class UserModel {
     };
   }
 
-  // Converts Firestore Map → UserModel so we can read it back
-  factory UserModel.fromMap(Map<String, dynamic> map) {
+  // Converts Map → UserModel so we can read it back
+  factory UserModel.fromMap(Map<dynamic, dynamic> map) {
     return UserModel(
-      uid: map['uid'],
-      firstName: map['firstName'],
-      lastName: map['lastName'],
-      birthDate: DateTime.parse(map['birthDate']),
-      email: map['email'],
-      gender: map['gender'],
+      uid: map['uid'] as String? ?? '',
+      firstName: map['firstName'] as String? ?? '',
+      lastName: map['lastName'] as String? ?? '',
+      birthDate: map['birthDate'] != null
+          ? DateTime.parse(map['birthDate'] as String)
+          : DateTime.now(),
+      email: map['email'] as String? ?? '',
+      gender: map['gender'] as String?,
     );
   }
-
   // Full name helper — used in the stats welcome message
   String get fullName => '$firstName $lastName';
 }
