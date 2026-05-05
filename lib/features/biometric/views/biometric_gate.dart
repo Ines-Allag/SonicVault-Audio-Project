@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sonic_vault/features/biometric/viewmodels/biometric_viewmodel.dart';
 
 class BiometricGate extends StatefulWidget {
@@ -78,10 +79,16 @@ class _BiometricGateState extends State<BiometricGate> {
         if (viewModel.isAuthenticated) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
-              Navigator.pushReplacementNamed(context, '/auth');
+              // Check if user is already logged in Firebase
+              final firebaseUser = FirebaseAuth.instance.currentUser;
+              if (firebaseUser != null) {
+                Navigator.pushReplacementNamed(context, '/home');
+              } else {
+                Navigator.pushReplacementNamed(context, '/auth');
+              }
             }
           });
-          return _buildSuccessScreen(); // ← no flash, stays green
+          return _buildSuccessScreen();
         }
 
         // ── MAIN BIOMETRIC SCREEN ──────────────────

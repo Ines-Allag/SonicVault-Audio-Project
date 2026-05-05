@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:sonic_vault/features/stats/viewmodels/stats_viewmodel.dart';
 import 'package:sonic_vault/features/stats/models/top_track.dart';
 import 'package:sonic_vault/shared/repositories/firebase_repo.dart';
+import 'package:sonic_vault/features/explorer/views/explorer_page.dart';
+import 'package:sonic_vault/shared/widgets/mini_player_bar.dart';
+
+// ← fl_chart import removed, no longer needed
 
 class StatsPage extends StatefulWidget {
   const StatsPage({super.key});
@@ -14,6 +17,7 @@ class StatsPage extends StatefulWidget {
 
 class _StatsPageState extends State<StatsPage> {
   String _userName = '';
+  int _currentIndex = 0;
 
   @override
   void initState() {
@@ -40,6 +44,39 @@ class _StatsPageState extends State<StatsPage> {
       builder: (context, viewModel, child) {
         return Scaffold(
           backgroundColor: const Color(0xFF0D0D0D),
+          bottomNavigationBar: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const MiniPlayerBar(),
+              const SizedBox(height: 8),
+              NavigationBar(
+                backgroundColor: const Color(0xFF111111),
+                indicatorColor: const Color(0xFF22C55E).withOpacity(0.15),
+                selectedIndex: _currentIndex,
+                onDestinationSelected: (index) {
+                  if (index == _currentIndex) return;
+                  setState(() => _currentIndex = index);
+                  if (index == 1) {
+                    Navigator.pushNamed(context, '/explorer');
+                  }
+                },
+                destinations: const [
+                  NavigationDestination(
+                    icon: Icon(Icons.bar_chart_rounded, color: Colors.white38),
+                    selectedIcon: Icon(Icons.bar_chart_rounded,
+                        color: Color(0xFF22C55E)),
+                    label: 'Stats',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.explore_outlined, color: Colors.white38),
+                    selectedIcon: Icon(Icons.explore_rounded,
+                        color: Color(0xFF22C55E)),
+                    label: 'Explorer',
+                  ),
+                ],
+              ),
+            ],
+          ),
           appBar: AppBar(
             backgroundColor: const Color(0xFF0D0D0D),
             elevation: 0,
@@ -53,13 +90,8 @@ class _StatsPageState extends State<StatsPage> {
             ),
             actions: [
               IconButton(
-                icon: const Icon(
-                  Icons.settings_outlined,
-                  color: Colors.white,
-                ),
-                onPressed: () {
-                  Navigator.pushNamed(context, '/settings');
-                },
+                icon: const Icon(Icons.settings_outlined, color: Colors.white),
+                onPressed: () => Navigator.pushNamed(context, '/settings'),
               ),
             ],
           ),
@@ -81,30 +113,15 @@ class _StatsPageState extends State<StatsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
-                    // ── WELCOME MESSAGE ──────────────
                     _buildWelcomeHeader(),
-
                     const SizedBox(height: 20),
-
-                    // ── STATS CARDS ROW ──────────────
                     _buildStatsCards(viewModel),
-
                     const SizedBox(height: 24),
-
-                    // ── MONTHLY GOAL ─────────────────
                     _buildMonthlyGoal(viewModel),
-
                     const SizedBox(height: 24),
-
-                    // ── HISTOGRAM ────────────────────
                     _buildHistogram(viewModel),
-
                     const SizedBox(height: 24),
-
-                    // ── TOP TRACKS ───────────────────
                     _buildTopTracks(viewModel),
-
                     const SizedBox(height: 100),
                   ],
                 ),
@@ -129,13 +146,8 @@ class _StatsPageState extends State<StatsPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          greeting,
-          style: const TextStyle(
-            color: Colors.white38,
-            fontSize: 14,
-          ),
-        ),
+        Text(greeting,
+            style: const TextStyle(color: Colors.white38, fontSize: 14)),
         const SizedBox(height: 4),
         RichText(
           text: TextSpan(
@@ -143,18 +155,16 @@ class _StatsPageState extends State<StatsPage> {
               const TextSpan(
                 text: 'Welcome, ',
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.normal,
-                ),
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.normal),
               ),
               TextSpan(
                 text: _userName.isEmpty ? '...' : _userName,
                 style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold, // name in bold as required
-                ),
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -167,29 +177,23 @@ class _StatsPageState extends State<StatsPage> {
   Widget _buildStatsCards(StatsViewModel viewModel) {
     final stats = viewModel.statsData;
     final totalHours = stats?.totalHours ?? 0;
-    final totalMins = stats?.remainingMinutes ?? 0;
     final trackCount = stats?.topTracks.length ?? 0;
     final goalPercent = (viewModel.goalProgress * 100).toInt();
 
     return Row(
       children: [
         _statCard(
-          value: '${totalHours}h',
-          label: 'this month',
-          color: const Color(0xFF22c55e),
-        ),
+            value: '${totalHours}h',
+            label: 'this month',
+            color: const Color(0xFF22c55e)),
         const SizedBox(width: 12),
         _statCard(
-          value: '$trackCount',
-          label: 'tracks',
-          color: Colors.white,
-        ),
+            value: '$trackCount', label: 'tracks', color: Colors.white),
         const SizedBox(width: 12),
         _statCard(
-          value: '$goalPercent%',
-          label: 'goal',
-          color: const Color(0xFF22c55e),
-        ),
+            value: '$goalPercent%',
+            label: 'goal',
+            color: const Color(0xFF22c55e)),
       ],
     );
   }
@@ -208,22 +212,15 @@ class _StatsPageState extends State<StatsPage> {
         ),
         child: Column(
           children: [
-            Text(
-              value,
-              style: TextStyle(
-                color: color,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            Text(value,
+                style: TextStyle(
+                    color: color,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white38,
-                fontSize: 12,
-              ),
-            ),
+            Text(label,
+                style: const TextStyle(
+                    color: Colors.white38, fontSize: 12)),
           ],
         ),
       ),
@@ -244,20 +241,14 @@ class _StatsPageState extends State<StatsPage> {
       ),
       child: Column(
         children: [
-
-          // label + goal selector
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Monthly Goal',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
-              ),
-              // ── GOAL DROPDOWN ──────────────────
+              const Text('Monthly Goal',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15)),
               Container(
                 padding: const EdgeInsets.symmetric(
                     horizontal: 12, vertical: 4),
@@ -270,52 +261,33 @@ class _StatsPageState extends State<StatsPage> {
                   dropdownColor: const Color(0xFF1A1A1A),
                   underline: const SizedBox(),
                   style: const TextStyle(
-                    color: Color(0xFF22c55e),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
+                      color: Color(0xFF22c55e),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14),
                   items: viewModel.goalOptions.map((int hours) {
                     return DropdownMenuItem(
-                      value: hours,
-                      child: Text('$hours h'),
-                    );
+                        value: hours, child: Text('$hours h'));
                   }).toList(),
                   onChanged: (int? value) {
-                    if (value != null) {
-                      viewModel.setMonthlyGoal(value);
-                    }
+                    if (value != null) viewModel.setMonthlyGoal(value);
                   },
                 ),
               ),
             ],
           ),
-
           const SizedBox(height: 12),
-
-          // progress info
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                '${totalHours}h ${totalMins}min listened',
-                style: const TextStyle(
-                  color: Colors.white54,
-                  fontSize: 12,
-                ),
-              ),
-              Text(
-                '${viewModel.monthlyGoalHours}h goal',
-                style: const TextStyle(
-                  color: Colors.white54,
-                  fontSize: 12,
-                ),
-              ),
+              Text('${totalHours}h ${totalMins}min listened',
+                  style: const TextStyle(
+                      color: Colors.white54, fontSize: 12)),
+              Text('${viewModel.monthlyGoalHours}h goal',
+                  style: const TextStyle(
+                      color: Colors.white54, fontSize: 12)),
             ],
           ),
-
           const SizedBox(height: 10),
-
-          // progress bar
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
@@ -323,8 +295,7 @@ class _StatsPageState extends State<StatsPage> {
               minHeight: 8,
               backgroundColor: const Color(0xFF2A2A2A),
               valueColor: const AlwaysStoppedAnimation<Color>(
-                Color(0xFF22c55e),
-              ),
+                  Color(0xFF22c55e)),
             ),
           ),
         ],
@@ -332,13 +303,12 @@ class _StatsPageState extends State<StatsPage> {
     );
   }
 
-  // ── HISTOGRAM ─────────────────────────────────
+  // ── HISTOGRAM (improved) ──────────────────────
   Widget _buildHistogram(StatsViewModel viewModel) {
     final stats = viewModel.statsData;
     final now = DateTime.now();
     final monthName = _monthName(now.month);
 
-    // build bar groups from daily stats
     final Map<int, int> dayMinutes = {};
     if (stats != null) {
       for (final stat in stats.dailyStats) {
@@ -346,131 +316,255 @@ class _StatsPageState extends State<StatsPage> {
       }
     }
 
-    // create bars for every day of current month
-    final int daysInMonth =
-        DateTime(now.year, now.month + 1, 0).day;
-
-    final List<BarChartGroupData> bars = List.generate(
-      daysInMonth,
-          (index) {
-        final int day = index + 1;
-        final int minutes = dayMinutes[day] ?? 0;
-        final bool isToday = day == now.day;
-
-        return BarChartGroupData(
-          x: day,
-          barRods: [
-            BarChartRodData(
-              toY: minutes.toDouble(),
-              color: isToday
-                  ? const Color(0xFF22c55e)
-                  : const Color(0xFF22c55e).withOpacity(0.35),
-              width: 6,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(3),
-                topRight: Radius.circular(3),
-              ),
-            ),
-          ],
-        );
-      },
-    );
+    final int daysInMonth = DateTime(now.year, now.month + 1, 0).day;
+    final int maxMinutes = dayMinutes.values.isEmpty
+        ? 60
+        : dayMinutes.values.reduce((a, b) => a > b ? a : b);
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: const Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Minutes / day — $monthName',
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 15,
-            ),
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            height: 140,
-            child: stats == null || stats.dailyStats.isEmpty
-                ? const Center(
-              child: Text(
-                'No listening data yet',
+          // ── HEADER ────────────────────────────
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Minutes / day',
                 style: TextStyle(
-                  color: Colors.white38,
-                  fontSize: 13,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF22c55e).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                      color: const Color(0xFF22c55e).withOpacity(0.3)),
+                ),
+                child: Text(
+                  monthName,
+                  style: const TextStyle(
+                    color: Color(0xFF22c55e),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 6),
+
+          // ── SUBTITLE ──────────────────────────
+          Text(
+            dayMinutes.isEmpty
+                ? 'No listening data yet'
+                : 'Today: ${dayMinutes[now.day] ?? 0} min · Peak: $maxMinutes min',
+            style: const TextStyle(color: Colors.white38, fontSize: 12),
+          ),
+
+          const SizedBox(height: 20),
+
+          if (dayMinutes.isEmpty)
+            const SizedBox(
+              height: 120,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.bar_chart_rounded,
+                        color: Colors.white12, size: 48),
+                    SizedBox(height: 8),
+                    Text('Start listening to see your chart',
+                        style: TextStyle(
+                            color: Colors.white24, fontSize: 12)),
+                  ],
                 ),
               ),
             )
-                : BarChart(
-              BarChartData(
-                alignment: BarChartAlignment.spaceAround,
-                maxY: (dayMinutes.values.isEmpty
-                    ? 60
-                    : dayMinutes.values.reduce(
-                        (a, b) => a > b ? a : b) +
-                    10)
-                    .toDouble(),
-                barGroups: bars,
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  getDrawingHorizontalLine: (value) => FlLine(
-                    color: Colors.white.withOpacity(0.05),
-                    strokeWidth: 1,
-                  ),
-                ),
-                borderData: FlBorderData(show: false),
-                titlesData: FlTitlesData(
-                  show: true,
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 30,
-                      getTitlesWidget: (value, meta) {
-                        if (value == 0) return const SizedBox();
-                        return Text(
-                          '${value.toInt()}',
+          else
+            SizedBox(
+              height: 160,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  // ── Y AXIS ────────────────────
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text('${maxMinutes}m',
                           style: const TextStyle(
-                            color: Colors.white24,
-                            fontSize: 9,
+                              color: Colors.white24, fontSize: 9)),
+                      Text('${(maxMinutes * 0.5).round()}m',
+                          style: const TextStyle(
+                              color: Colors.white24, fontSize: 9)),
+                      const Text('0',
+                          style: TextStyle(
+                              color: Colors.white24, fontSize: 9)),
+                    ],
+                  ),
+                  const SizedBox(width: 8),
+
+                  // ── BARS ──────────────────────
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children:
+                            List.generate(daysInMonth, (index) {
+                              final int day = index + 1;
+                              final int minutes = dayMinutes[day] ?? 0;
+                              final bool isToday = day == now.day;
+                              final bool hasData = minutes > 0;
+                              final double heightRatio = maxMinutes == 0
+                                  ? 0
+                                  : minutes / maxMinutes;
+
+                              return Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 1),
+                                  child: Column(
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.end,
+                                    children: [
+                                      // Label on today's bar
+                                      if (isToday && hasData)
+                                        Container(
+                                          margin: const EdgeInsets.only(
+                                              bottom: 3),
+                                          padding:
+                                          const EdgeInsets.symmetric(
+                                              horizontal: 3,
+                                              vertical: 1),
+                                          decoration: BoxDecoration(
+                                            color:
+                                            const Color(0xFF22c55e),
+                                            borderRadius:
+                                            BorderRadius.circular(3),
+                                          ),
+                                          child: Text(
+                                            '$minutes',
+                                            style: const TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 7,
+                                                fontWeight:
+                                                FontWeight.bold),
+                                          ),
+                                        ),
+                                      // Bar
+                                      AnimatedContainer(
+                                        duration: const Duration(
+                                            milliseconds: 600),
+                                        curve: Curves.easeOut,
+                                        height: hasData
+                                            ? (heightRatio * 130)
+                                            .clamp(4.0, 130.0)
+                                            : 3,
+                                        decoration: BoxDecoration(
+                                          color: isToday
+                                              ? const Color(0xFF22c55e)
+                                              : hasData
+                                              ? const Color(0xFF22c55e)
+                                              .withOpacity(0.5)
+                                              : Colors.white
+                                              .withOpacity(0.05),
+                                          borderRadius: BorderRadius.only(
+                                            topLeft: Radius.circular(
+                                                isToday ? 4 : 2),
+                                            topRight: Radius.circular(
+                                                isToday ? 4 : 2),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }),
                           ),
-                        );
-                      },
+                        ),
+
+                        // ── X AXIS LABELS ────────
+                        const SizedBox(height: 6),
+                        Row(
+                          children:
+                          List.generate(daysInMonth, (index) {
+                            final int day = index + 1;
+                            final bool show = day == 1 ||
+                                day % 5 == 0 ||
+                                day == now.day;
+                            final bool isToday = day == now.day;
+                            return Expanded(
+                              child: Text(
+                                show ? '$day' : '',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: isToday
+                                      ? const Color(0xFF22c55e)
+                                      : Colors.white24,
+                                  fontSize: 8,
+                                  fontWeight: isToday
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
+                              ),
+                            );
+                          }),
+                        ),
+                      ],
                     ),
                   ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (value, meta) {
-                        // only show every 5 days
-                        if (value.toInt() % 5 != 0) {
-                          return const SizedBox();
-                        }
-                        return Text(
-                          '${value.toInt()}',
-                          style: const TextStyle(
-                            color: Colors.white24,
-                            fontSize: 9,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  rightTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  topTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                ),
+                ],
               ),
             ),
-          ),
+
+          // ── LEGEND ────────────────────────────
+          if (dayMinutes.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF22c55e),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Text('Today',
+                    style: TextStyle(
+                        color: Colors.white38, fontSize: 11)),
+                const SizedBox(width: 16),
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF22c55e).withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Text('Other days',
+                    style: TextStyle(
+                        color: Colors.white38, fontSize: 11)),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -487,30 +581,21 @@ class _StatsPageState extends State<StatsPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Most Listened',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
+            const Text('Most Listened',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16)),
             if (tracks.isNotEmpty)
               TextButton(
                 onPressed: () {},
-                child: const Text(
-                  'see all',
-                  style: TextStyle(
-                    color: Color(0xFF22c55e),
-                    fontSize: 13,
-                  ),
-                ),
+                child: const Text('see all',
+                    style: TextStyle(
+                        color: Color(0xFF22c55e), fontSize: 13)),
               ),
           ],
         ),
-
         const SizedBox(height: 8),
-
         if (tracks.isEmpty)
           Container(
             width: double.infinity,
@@ -522,18 +607,13 @@ class _StatsPageState extends State<StatsPage> {
             child: const Text(
               'No tracks listened yet this month.\nStart listening to see your stats!',
               style: TextStyle(
-                color: Colors.white38,
-                fontSize: 13,
-                height: 1.6,
-              ),
+                  color: Colors.white38, fontSize: 13, height: 1.6),
               textAlign: TextAlign.center,
             ),
           )
         else
           ...tracks.asMap().entries.map((entry) {
-            final int index = entry.key;
-            final TopTrack topTrack = entry.value;
-            return _buildTopTrackItem(index + 1, topTrack);
+            return _buildTopTrackItem(entry.key + 1, entry.value);
           }),
       ],
     );
@@ -542,7 +622,8 @@ class _StatsPageState extends State<StatsPage> {
   Widget _buildTopTrackItem(int rank, TopTrack topTrack) {
     final int hours = topTrack.totalMinutes ~/ 60;
     final int mins = topTrack.totalMinutes % 60;
-    final String duration = hours > 0 ? '${hours}h${mins}' : '${mins}min';
+    final String duration =
+    hours > 0 ? '${hours}h${mins}' : '${mins}min';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -553,23 +634,15 @@ class _StatsPageState extends State<StatsPage> {
       ),
       child: Row(
         children: [
-
-          // rank number
           SizedBox(
             width: 24,
-            child: Text(
-              '$rank',
-              style: const TextStyle(
-                color: Colors.white38,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: Text('$rank',
+                style: const TextStyle(
+                    color: Colors.white38,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold)),
           ),
-
           const SizedBox(width: 12),
-
-          // cover image
           Container(
             width: 48,
             height: 48,
@@ -580,60 +653,39 @@ class _StatsPageState extends State<StatsPage> {
             child: topTrack.track.imageUrl.isNotEmpty
                 ? ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                topTrack.track.imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Icon(
-                  Icons.music_note_rounded,
-                  color: Color(0xFF22c55e),
-                  size: 24,
-                ),
-              ),
+              child: Image.network(topTrack.track.imageUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const Icon(
+                      Icons.music_note_rounded,
+                      color: Color(0xFF22c55e),
+                      size: 24)),
             )
-                : const Icon(
-              Icons.music_note_rounded,
-              color: Color(0xFF22c55e),
-              size: 24,
-            ),
+                : const Icon(Icons.music_note_rounded,
+                color: Color(0xFF22c55e), size: 24),
           ),
-
           const SizedBox(width: 12),
-
-          // track info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  topTrack.track.title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                Text(topTrack.track.title,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 4),
                 Text(
-                  '${topTrack.track.artist} • ${topTrack.playCount} plays',
-                  style: const TextStyle(
-                    color: Colors.white38,
-                    fontSize: 12,
-                  ),
-                ),
+                    '${topTrack.track.artist} • ${topTrack.playCount} plays',
+                    style: const TextStyle(
+                        color: Colors.white38, fontSize: 12)),
               ],
             ),
           ),
-
-          // total time
-          Text(
-            duration,
-            style: const TextStyle(
-              color: Colors.white54,
-              fontSize: 12,
-            ),
-          ),
+          Text(duration,
+              style: const TextStyle(
+                  color: Colors.white54, fontSize: 12)),
         ],
       ),
     );

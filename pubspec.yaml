@@ -4,7 +4,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: '^3.11.0'
 
 dependencies:
   flutter:
@@ -14,6 +14,7 @@ dependencies:
   firebase_core: ^3.6.0
   firebase_auth: ^5.3.1
   firebase_database: ^11.0.0
+  cloud_firestore: ^5.4.4
 
   # Biometric
   local_auth: ^2.3.0
@@ -28,19 +29,37 @@ dependencies:
   # Local storage
   shared_preferences: ^2.3.2
 
-  # App settings (redirect to fingerprint settings)
+  # App settings
   app_settings: ^5.1.1
 
   # UI
   cupertino_icons: ^1.0.8
   fl_chart: ^0.69.0
+  http: ^1.2.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.1
+  flutter_native_splash: ^2.4.0
 
 flutter:
   uses-material-design: true
   assets:
     - assets/audio/
+    - assets/reciters/
+    - assets/images/
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/logo.png"
+  adaptive_icon_background: "#0D0D0D"
+  adaptive_icon_foreground: "assets/images/logo.png"
+
+flutter_native_splash:
+  color: "#0D0D0D"
+  image: assets/images/splash.png
+  android: true
+  ios: true

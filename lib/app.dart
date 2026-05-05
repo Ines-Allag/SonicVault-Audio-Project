@@ -3,6 +3,7 @@ import 'package:sonic_vault/features/biometric/views/biometric_gate.dart';
 import 'package:sonic_vault/features/auth/views/login_page.dart';
 import 'package:sonic_vault/features/stats/views/stats_page.dart';
 import 'package:sonic_vault/features/settings/views/settings_page.dart';
+import 'package:sonic_vault/features/explorer/views/explorer_page.dart'; // ← added
 
 class SonicVaultApp extends StatelessWidget {
   const SonicVaultApp({super.key});
@@ -11,9 +12,7 @@ class SonicVaultApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Sonic Vault',
-      debugShowCheckedModeBanner: false, // removes the red DEBUG banner
-
-      // ── THEME ───────────────────────────────────
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
         primaryColor: const Color(0xFF6C63FF),
@@ -24,17 +23,12 @@ class SonicVaultApp extends StatelessWidget {
         ),
         fontFamily: 'Roboto',
       ),
-
-      // ── FIRST SCREEN ────────────────────────────
-      // BiometricGate is always the first thing the user sees
       home: const BiometricGate(),
-
-      // ── ROUTES ──────────────────────────────────
-      // We'll add these as we build each screen
       routes: {
         '/auth': (context) => const LoginPage(),
         '/home': (context) => const StatsPage(),
         '/settings': (context) => const SettingsPage(),
+        '/explorer': (context) => const ExplorerPage(), // ← added
       },
     );
   }
